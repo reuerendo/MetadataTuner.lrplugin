@@ -44,7 +44,6 @@ The plugin allows you to add information from other tags to the **title** and **
 ## Processed fields:
 - Title - written to EXIF:Title, XMP-dc:Title, IPTC:ObjectName
 - Caption/Description - written to EXIF:Description, XMP-dc:Description, IPTC:Caption-Abstract
-- Keywords - written to EXIF:Keywords, XMP-dc:Subject, IPTC:Keywords
 ## Requirements:
 **ExifTool is required** for the plugin to work. You can either:
 - Place ExifTool in the 'exiftool' folder inside the plugin directory (default)
