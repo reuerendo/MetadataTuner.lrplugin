@@ -200,7 +200,7 @@ Metadata:
 {Keywords} - Keywords list
 
 Example templates:
-{City}, {Country} - {MMM} {D}, {YYYY}: {Caption}
+{City}, {Country} - {MMMM} {D}, {YYYY}: {Caption}
 {Location} ({DD}.{MM}.{YYYY})
 {Title} - {City}, {State}]]
 end
