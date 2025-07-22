@@ -1,19 +1,12 @@
 local LrTasks = import 'LrTasks'
 local LrFileUtils = import 'LrFileUtils'
 local LrPathUtils = import 'LrPathUtils'
-local LrApplicationView = import 'LrApplicationView'
-local LrLogger = import 'LrLogger'
-local LrPrefs = import 'LrPrefs'
 
 -- Import modules
 local MetadataTemplateProcessor = require 'MetadataTemplateProcessor'
 local ExportDialogSettings = require 'ExportDialogSettings'
 
 local ExportFilterProvider = {}
-
--- Create logger
-local logger = LrLogger('MetadataAsciiConverter')
-logger:enable("logfile")
 
 -- Character mapping for ASCII conversion
 local diacriticsMap = {
@@ -87,40 +80,10 @@ local function convertToAscii(text)
     return result, hasChanges
 end
 
--- Function to get ExifTool path from plugin preferences or default location
-local function getExifToolPath()
-    local prefs = LrPrefs.prefsForPlugin()
-    
-    -- First check if custom path is set in preferences
-    if prefs.exifToolPath and prefs.exifToolPath ~= "" then
-        if LrFileUtils.exists(prefs.exifToolPath) then
-            return prefs.exifToolPath
-        end
-    end
-    
-    -- Fallback to default plugin location
-    local pluginPath = _PLUGIN.path
-    local exifToolFolder = LrPathUtils.child(pluginPath, "exiftool")
-    
-    local exifToolExe = LrPathUtils.child(exifToolFolder, "exiftool.exe")
-    local exifTool = LrPathUtils.child(exifToolFolder, "exiftool")
-    
-    if LrFileUtils.exists(exifToolExe) then
-        return exifToolExe
-    elseif LrFileUtils.exists(exifTool) then
-        return exifTool
-    else
-        return nil
-    end
-end
-
 -- Function to process with ExifTool
-local function processWithExifTool(filePath, title, caption, keywords, enableAsciiConversion, verboseLogging)
-    local exifToolPath = getExifToolPath()
+local function processWithExifTool(filePath, title, caption, keywords, enableAsciiConversion)
+    local exifToolPath = ExportDialogSettings.getExifToolPath()
     if not exifToolPath then
-        if verboseLogging then
-            logger:info("ExifTool not found. Please specify path in plugin preferences.")
-        end
         return false, "ExifTool not found. Please specify path in plugin preferences."
     end
     
@@ -130,13 +93,9 @@ local function processWithExifTool(filePath, title, caption, keywords, enableAsc
     -- Process title
     if title and title ~= "" then
         local finalTitle = title
-        local titleChanged = false
         
         if enableAsciiConversion then
-            finalTitle, titleChanged = convertToAscii(title)
-            if titleChanged and verboseLogging then
-                logger:info("Title changed: '" .. title .. "' -> '" .. finalTitle .. "'")
-            end
+            finalTitle = convertToAscii(title)
         end
         
         table.insert(commands, "-Title=" .. finalTitle)
@@ -148,13 +107,9 @@ local function processWithExifTool(filePath, title, caption, keywords, enableAsc
     -- Process caption
     if caption and caption ~= "" then
         local finalCaption = caption
-        local captionChanged = false
         
         if enableAsciiConversion then
-            finalCaption, captionChanged = convertToAscii(caption)
-            if captionChanged and verboseLogging then
-                logger:info("Caption changed: '" .. caption .. "' -> '" .. finalCaption .. "'")
-            end
+            finalCaption = convertToAscii(caption)
         end
         
         table.insert(commands, "-Description=" .. finalCaption)
@@ -168,13 +123,9 @@ local function processWithExifTool(filePath, title, caption, keywords, enableAsc
     -- Process keywords
     if keywords and keywords ~= "" then
         local finalKeywords = keywords
-        local keywordsChanged = false
         
         if enableAsciiConversion then
-            finalKeywords, keywordsChanged = convertToAscii(keywords)
-            if keywordsChanged and verboseLogging then
-                logger:info("Keywords changed: '" .. keywords .. "' -> '" .. finalKeywords .. "'")
-            end
+            finalKeywords = convertToAscii(keywords)
         end
         
         table.insert(commands, "-Keywords=" .. finalKeywords)
@@ -184,9 +135,6 @@ local function processWithExifTool(filePath, title, caption, keywords, enableAsc
     end
     
     if not hasChanges then
-        if verboseLogging then
-            logger:info("No metadata to process for file: " .. filePath)
-        end
         return true, "No metadata to process"
     end
     
@@ -198,9 +146,6 @@ local function processWithExifTool(filePath, title, caption, keywords, enableAsc
     -- Write commands to config file in UTF-8
     local configFile = io.open(tempConfigFile, "w")
     if not configFile then
-        if verboseLogging then
-            logger:info("Could not create temp config file: " .. tempConfigFile)
-        end
         return false, "Could not create temp config file"
     end
     
@@ -225,10 +170,6 @@ local function processWithExifTool(filePath, title, caption, keywords, enableAsc
         command = command .. ' "' .. arg .. '"'
     end
     
-    if verboseLogging then
-        logger:info("Executing command: " .. command)
-    end
-    
     -- Execute command
     local success = false
     
@@ -249,31 +190,10 @@ local function processWithExifTool(filePath, title, caption, keywords, enableAsc
         
         -- Clean up batch file
         LrFileUtils.delete(tempBatFile)
-        
-        if verboseLogging then
-            if success then
-                logger:info("Command executed successfully for: " .. filePath)
-            else
-                logger:info("Command execution error for: " .. filePath)
-                -- Try to read error output
-                if LrFileUtils.exists(tempOutputFile) then
-                    local outputFile = io.open(tempOutputFile, "r")
-                    if outputFile then
-                        local errorOutput = outputFile:read("*all")
-                        outputFile:close()
-                        logger:info("Error output: " .. errorOutput)
-                    end
-                end
-            end
-        end
     else
         -- Fallback: direct execution with UTF-8 charset parameter
         local result = LrTasks.execute(command)
         success = (result ~= nil)
-        
-        if verboseLogging then
-            logger:info("Command executed " .. (success and "successfully" or "with error") .. " for: " .. filePath)
-        end
     end
     
     -- Clean up temporary files
@@ -289,38 +209,37 @@ end
 
 -- Create settings interface using the separate module
 function ExportFilterProvider.sectionForFilterInDialog(f, propertyTable)
-    -- Initialize property table and load settings
+    -- Инициализировать значения по умолчанию только если они не установлены
     ExportDialogSettings.initializePropertyTable(propertyTable)
-    
-    -- Set up observers to save settings when changed
-    ExportDialogSettings.setupObservers(propertyTable)
     
     -- Return the UI section
     return ExportDialogSettings.createUISection(f)
 end
 
+-- Указать какие поля должны сохраняться в пресетах
+function ExportFilterProvider.hideSections(propertyTable)
+    return {}
+end
+
+function ExportFilterProvider.startDialog(propertyTable)
+    -- Инициализация значений по умолчанию при создании нового пресета
+    ExportDialogSettings.initializePropertyTable(propertyTable)
+end
+
+-- Поля для сохранения в пресетах теперь определены в info.lua
+
 -- Main processing function
 function ExportFilterProvider.postProcessRenderedPhotos(functionContext, filterContext)
-    local prefs = LrPrefs.prefsForPlugin()
-    local verboseLogging = prefs.verboseLogging or false
-    local exportSettings = filterContext.propertyTable
+    local exportSettings = ExportDialogSettings.getExportSettings(filterContext.propertyTable)
     
-    -- Get template settings from export dialog (now saved in prefs)
-    local enableTemplateProcessing = exportSettings.enableTemplateProcessing or false
-    local titleTemplate = exportSettings.titleTemplate or ""
-    local captionTemplate = exportSettings.captionTemplate or ""
+    -- Get template settings from export dialog
+    local enableTemplateProcessing = exportSettings.enableTemplateProcessing
+    local titleTemplate = exportSettings.titleTemplate
+    local captionTemplate = exportSettings.captionTemplate
     local enableAsciiConversion = exportSettings.enableAsciiConversion
-    if enableAsciiConversion == nil then enableAsciiConversion = true end -- Default to enabled for backward compatibility
-    
-    if verboseLogging then
-        logger:info("Starting processing of exported files")
-        logger:info("Template processing enabled: " .. tostring(enableTemplateProcessing))
-        logger:info("ASCII conversion enabled: " .. tostring(enableAsciiConversion))
-        if enableTemplateProcessing then
-            logger:info("Title template: '" .. titleTemplate .. "'")
-            logger:info("Caption template: '" .. captionTemplate .. "'")
-        end
-    end
+    if enableAsciiConversion == nil then 
+        enableAsciiConversion = true 
+    end -- Default to enabled for backward compatibility
     
     for rendition in filterContext:renditions() do
         if not rendition.wasSkipped then
@@ -329,10 +248,6 @@ function ExportFilterProvider.postProcessRenderedPhotos(functionContext, filterC
             if success then
                 local photo = rendition.photo
                 local filePath = pathOrMessage
-                
-                if verboseLogging then
-                    logger:info("Processing file: " .. filePath)
-                end
                 
                 -- Get original metadata
                 local originalTitle = photo:getFormattedMetadata('title') or ""
@@ -357,43 +272,21 @@ function ExportFilterProvider.postProcessRenderedPhotos(functionContext, filterC
                     if titleTemplate and titleTemplate ~= "" then
                         processedTitle = MetadataTemplateProcessor.processTemplate(titleTemplate, photo)
                         templateProcessed = true
-                        if verboseLogging then
-                            logger:info("Title processed with template: '" .. originalTitle .. "' -> '" .. processedTitle .. "'")
-                        end
                     end
                     
                     if captionTemplate and captionTemplate ~= "" then
                         processedCaption = MetadataTemplateProcessor.processTemplate(captionTemplate, photo)
                         templateProcessed = true
-                        if verboseLogging then
-                            logger:info("Caption processed with template: '" .. originalCaption .. "' -> '" .. processedCaption .. "'")
-                        end
                     end
-                end
-                
-                if verboseLogging then
-                    logger:info("Final metadata - Title: '" .. processedTitle .. "', Caption: '" .. processedCaption .. "', Keywords: '" .. keywords .. "'")
                 end
                 
                 -- Process with ExifTool (will handle both template processing and ASCII conversion)
                 -- Only process if we have templates enabled or if there's metadata that might need processing
                 if templateProcessed or processedTitle ~= "" or processedCaption ~= "" or keywords ~= "" then
-                    local result, message = processWithExifTool(filePath, processedTitle, processedCaption, keywords, enableAsciiConversion, verboseLogging)
-                    
-                    if verboseLogging then
-                        logger:info("Processing result: " .. (result and "success" or "error") .. " - " .. message)
-                    end
-                end
-            else
-                if verboseLogging then
-                    logger:info("File skipped due to rendering error: " .. (pathOrMessage or "unknown error"))
+                    local result, message = processWithExifTool(filePath, processedTitle, processedCaption, keywords, enableAsciiConversion)
                 end
             end
         end
-    end
-    
-    if verboseLogging then
-        logger:info("Processing completed")
     end
 end
 
