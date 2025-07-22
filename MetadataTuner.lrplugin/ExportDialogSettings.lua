@@ -1,6 +1,8 @@
 local LrView = import 'LrView'
 local LrDialogs = import 'LrDialogs'
 local LrPrefs = import 'LrPrefs'
+local LrFileUtils = import 'LrFileUtils'
+local LrPathUtils = import 'LrPathUtils'
 
 -- Import the template processor for help dialog
 local MetadataTemplateProcessor = require 'MetadataTemplateProcessor'
@@ -16,45 +18,65 @@ local function showTemplateHelp()
     )
 end
 
--- Function to load settings from preferences
-local function loadSettingsFromPrefs(propertyTable)
+-- Function to get ExifTool path from plugin preferences or default location
+function ExportDialogSettings.getExifToolPath()
     local prefs = LrPrefs.prefsForPlugin()
     
-    -- Load template processing settings from prefs
-    if prefs.enableTemplateProcessing ~= nil then
-        propertyTable.enableTemplateProcessing = prefs.enableTemplateProcessing
+    -- First check if custom path is set in preferences
+    if prefs.exifToolPath and prefs.exifToolPath ~= "" then
+        if LrFileUtils.exists(prefs.exifToolPath) then
+            return prefs.exifToolPath
+        end
     end
     
-    if prefs.titleTemplate ~= nil then
-        propertyTable.titleTemplate = prefs.titleTemplate
-    end
+    -- Fallback to default plugin location
+    local pluginPath = _PLUGIN.path
+    local exifToolFolder = LrPathUtils.child(pluginPath, "exiftool")
     
-    if prefs.captionTemplate ~= nil then
-        propertyTable.captionTemplate = prefs.captionTemplate
-    end
+    local exifToolExe = LrPathUtils.child(exifToolFolder, "exiftool.exe")
+    local exifTool = LrPathUtils.child(exifToolFolder, "exiftool")
     
-    -- Load ASCII conversion setting from prefs
-    if prefs.enableAsciiConversion ~= nil then
-        propertyTable.enableAsciiConversion = prefs.enableAsciiConversion
+    if LrFileUtils.exists(exifToolExe) then
+        return exifToolExe
+    elseif LrFileUtils.exists(exifTool) then
+        return exifTool
+    else
+        return nil
     end
 end
 
--- Function to save settings to preferences
-local function saveSettingsToPrefs(propertyTable)
-    local prefs = LrPrefs.prefsForPlugin()
-    
-    -- Save template processing settings to prefs
-    prefs.enableTemplateProcessing = propertyTable.enableTemplateProcessing
-    prefs.titleTemplate = propertyTable.titleTemplate
-    prefs.captionTemplate = propertyTable.captionTemplate
-    
-    -- Save ASCII conversion setting to prefs
-    prefs.enableAsciiConversion = propertyTable.enableAsciiConversion
+-- Function to get all export settings
+function ExportDialogSettings.getExportSettings(propertyTable)
+    return {
+        enableTemplateProcessing = propertyTable.enableTemplateProcessing or false,
+        titleTemplate = propertyTable.titleTemplate or "",
+        captionTemplate = propertyTable.captionTemplate or "",
+        enableAsciiConversion = propertyTable.enableAsciiConversion
+    }
 end
 
--- Initialize property table values and load from preferences
+-- Function to validate ExifTool path
+function ExportDialogSettings.validateExifToolPath(path)
+    if not path or path == "" then
+        return false, "Path is empty"
+    end
+    
+    if not LrFileUtils.exists(path) then
+        return false, "File does not exist"
+    end
+    
+    -- Check if it's actually ExifTool by checking filename
+    local filename = LrPathUtils.leafName(path):lower()
+    if not (filename == "exiftool.exe" or filename == "exiftool") then
+        return false, "File is not ExifTool executable"
+    end
+    
+    return true, "Valid ExifTool path"
+end
+
+-- Initialize property table values with default values (НЕ загружать из глобальных настроек)
 function ExportDialogSettings.initializePropertyTable(propertyTable)
-    -- Initialize property table values
+    -- Устанавливаем значения по умолчанию только если они еще не установлены
     if propertyTable.enableTemplateProcessing == nil then
         propertyTable.enableTemplateProcessing = false
     end
@@ -65,53 +87,16 @@ function ExportDialogSettings.initializePropertyTable(propertyTable)
         propertyTable.captionTemplate = ""
     end
     if propertyTable.enableAsciiConversion == nil then
-        propertyTable.enableAsciiConversion = true -- Default to enabled for backward compatibility
+        propertyTable.enableAsciiConversion = true
     end
-    
-    -- Load saved settings
-    loadSettingsFromPrefs(propertyTable)
 end
 
--- Set up observers to save settings when changed
-function ExportDialogSettings.setupObservers(propertyTable)
-    propertyTable:addObserver('enableTemplateProcessing', function()
-        saveSettingsToPrefs(propertyTable)
-    end)
-    
-    propertyTable:addObserver('titleTemplate', function()
-        saveSettingsToPrefs(propertyTable)
-    end)
-    
-    propertyTable:addObserver('captionTemplate', function()
-        saveSettingsToPrefs(propertyTable)
-    end)
-    
-    propertyTable:addObserver('enableAsciiConversion', function()
-        saveSettingsToPrefs(propertyTable)
-    end)
-end
+-- УДАЛЕНЫ функции setupObservers - настройки должны сохраняться в propertyTable автоматически
 
 -- Create the UI section for the export dialog
 function ExportDialogSettings.createUISection(f)
     return {
         title = "Metadata Tuner",
-        
-        -- f:row {
-            -- f:static_text {
-                -- title = "Processes metadata using templates and optionally converts diacritics to ASCII.",
-                -- width_in_chars = 55,
-            -- },
-        -- },
-        
-        -- f:row {
-            -- f:static_text {
-                -- title = "Configure ExifTool path and logging settings in Plugin Manager.",
-                -- width_in_chars = 55,
-                -- text_color = LrView.kColorLabel,
-            -- },
-        -- },
-        
-        -- f:spacer { height = 10 },
         
         f:row {
             f:checkbox {
