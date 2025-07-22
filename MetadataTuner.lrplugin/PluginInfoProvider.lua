@@ -70,21 +70,6 @@ function PluginInfoProvider.sectionsForTopOfDialog(f, propertyTable)
                     text_color = LrView.kColorLabel,
                 },
             },
-            
-            f:row {
-                f:checkbox {
-                    title = "Enable verbose logging",
-                    value = LrView.bind { key = 'verboseLogging', object = prefs },
-                },
-            },
-            
-            f:row {
-                f:static_text {
-                    title = "Writes detailed processing information to console log.",
-                    width_in_chars = 50,
-                    text_color = LrView.kColorLabel,
-                },
-            },
         },
         
         {
@@ -129,9 +114,9 @@ function PluginInfoProvider.sectionsForTopOfDialog(f, propertyTable)
             
             f:row {
                 f:static_text {
-                    title = "• Title - written to EXIF:Title, XMP-dc:Title, IPTC:ObjectName\n• Caption/Description - written to EXIF:Description, XMP-dc:Description, IPTC:Caption-Abstract\n• Keywords - written to EXIF:Keywords, XMP-dc:Subject, IPTC:Keywords",
+                    title = "• Title - written to IPTC:ObjectName\n• Caption/Description - written to IPTC:Caption-Abstract",
                     width_in_chars = 70,
-                    height_in_lines = 4,
+                    height_in_lines = 2,
                 },
             },
             
@@ -146,7 +131,7 @@ function PluginInfoProvider.sectionsForTopOfDialog(f, propertyTable)
                 f:static_text {
                     title = "ExifTool is required for the plugin to work. You can either:\n• Place ExifTool in the 'exiftool' folder inside the plugin directory (default)\n• Specify custom path in the Settings section above",
                     width_in_chars = 60,
-                    height_in_lines = 3,
+                    height_in_lines = 2,
                 },
             },
             
@@ -161,21 +146,6 @@ function PluginInfoProvider.sectionsForTopOfDialog(f, propertyTable)
                 f:static_text {
                     title = "Download from https://exiftool.org/\nFor Windows: download the Windows Executable\nFor Mac/Linux: download the stand-alone executable",
                     width_in_chars = 60,
-                    height_in_lines = 3,
-                },
-            },
-            
-            f:row {
-                f:static_text {
-                    title = "Debugging:",
-                    font = '<system/bold>',
-                },
-            },
-            
-            f:row {
-                f:static_text {
-                    title = "Enable verbose logging in the Settings section above. The log will be output to console:\nWindows: Help → Plugin Extras → Plugin Manager → Console\nmacOS: Applications → Utilities → Console",
-                    width_in_chars = 70,
                     height_in_lines = 3,
                 },
             },
