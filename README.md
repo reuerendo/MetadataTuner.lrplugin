@@ -41,9 +41,6 @@ The plugin allows you to add information from other tags to the **title** and **
 1. During export, find 'Metadata Tuner' in the 'Post-Process Actions' section
 2. Enable the filter
 3. Export images as usual
-## Processed fields:
-- Title - written to EXIF:Title, XMP-dc:Title, IPTC:ObjectName
-- Caption/Description - written to EXIF:Description, XMP-dc:Description, IPTC:Caption-Abstract
 ## Requirements:
 **ExifTool is required** for the plugin to work. You can either:
 - Place ExifTool in the 'exiftool' folder inside the plugin directory (default)
