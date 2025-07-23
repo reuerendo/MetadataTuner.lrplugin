@@ -86,7 +86,7 @@ function PluginInfoProvider.sectionsForTopOfDialog(f, propertyTable)
                 f:static_text {
                     title = "This export filter converts diacritic characters (ą, ć, ę, ś, ź, ż, ó, ł, ń, etc.) to ASCII characters in image metadata during export.",
                     width_in_chars = 60,
-                    height_in_lines = 3,
+                    height_in_lines = 2,
                 },
             },
             
@@ -102,21 +102,6 @@ function PluginInfoProvider.sectionsForTopOfDialog(f, propertyTable)
                     title = "1. During export, find 'Metadata Tuner' in the 'Post-Process Actions' section\n2. Enable the filter\n3. Export images as usual",
                     width_in_chars = 70,
                     height_in_lines = 3,
-                },
-            },
-            
-            f:row {
-                f:static_text {
-                    title = "Processed fields:",
-                    font = '<system/bold>',
-                },
-            },
-            
-            f:row {
-                f:static_text {
-                    title = "• Title - written to IPTC:ObjectName\n• Caption/Description - written to IPTC:Caption-Abstract",
-                    width_in_chars = 70,
-                    height_in_lines = 2,
                 },
             },
             
