@@ -28,8 +28,6 @@ The plugin allows you to add information from other tags to the **title** and **
 
 {Country} - Country name
 
-{Location} - Location field
-
 {Sublocation} - Sublocation field
 #### Metadata:
 {Title} - Photo title
