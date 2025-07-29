@@ -96,7 +96,7 @@ local function getLocationMetadata(photo)
         City = photo:getFormattedMetadata('city') or '',
         State = photo:getFormattedMetadata('stateProvince') or '',
         Country = photo:getFormattedMetadata('country') or '',
-        Sublocation = photo:getFormattedMetadata('location') or '',
+		Sublocation = photo:getFormattedMetadata('location') or '',
     }
 end
 
@@ -191,7 +191,6 @@ Location:
 {City} - City name
 {State} - State/Province
 {Country} - Country name
-{Location} - Location field
 {Sublocation} - Sublocation field
 
 Metadata:
@@ -201,7 +200,7 @@ Metadata:
 
 Example templates:
 {City}, {Country} - {MMMM} {D}, {YYYY}: {Caption}
-{Location} ({DD}.{MM}.{YYYY})
+{Sublocation} ({DD}.{MM}.{YYYY})
 {Title} - {City}, {State}]]
 end
 
