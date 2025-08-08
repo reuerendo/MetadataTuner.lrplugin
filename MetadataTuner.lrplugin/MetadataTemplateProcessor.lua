@@ -102,24 +102,14 @@ end
 
 -- Function to get basic metadata
 local function getBasicMetadata(photo)
-    local title = photo:getFormattedMetadata('title') or ''
+    local title = photo:getFormattedMetadata('headline') or ''
     local caption = photo:getFormattedMetadata('caption') or ''
     
-    -- Get keywords
-    local keywordTags = photo:getRawMetadata('keywords') or {}
-    local keywords = ""
-    if type(keywordTags) == "table" and #keywordTags > 0 then
-        local keywordList = {}
-        for _, keyword in ipairs(keywordTags) do
-            table.insert(keywordList, keyword:getName())
-        end
-        keywords = table.concat(keywordList, ", ")
-    end
+    -- Keywords functionality removed
     
     return {
         Title = title,
         Caption = caption,
-        Keywords = keywords,
     }
 end
 
@@ -196,7 +186,6 @@ Location:
 Metadata:
 {Title} - Photo title
 {Caption} - Photo caption
-{Keywords} - Keywords list
 
 Example templates:
 {City}, {Country} - {MMMM} {D}, {YYYY}: {Caption}

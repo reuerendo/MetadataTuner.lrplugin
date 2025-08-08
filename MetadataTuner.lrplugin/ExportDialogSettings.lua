@@ -51,7 +51,13 @@ function ExportDialogSettings.getExportSettings(propertyTable)
         enableTemplateProcessing = propertyTable.enableTemplateProcessing or false,
         titleTemplate = propertyTable.titleTemplate or "",
         captionTemplate = propertyTable.captionTemplate or "",
-        enableAsciiConversion = propertyTable.enableAsciiConversion
+        enableAsciiConversion = propertyTable.enableAsciiConversion,
+        enableCrsDataRemoval = propertyTable.enableCrsDataRemoval or false,
+        enableSoftwareInfoRemoval = propertyTable.enableSoftwareInfoRemoval or false,
+        enableLocationInfoRemoval = propertyTable.enableLocationInfoRemoval or false,
+        enableEquipmentInfoRemoval = propertyTable.enableEquipmentInfoRemoval or false,
+        enableShootingInfoRemoval = propertyTable.enableShootingInfoRemoval or false,
+        enableIptcInfoRemoval = propertyTable.enableIptcInfoRemoval or false
     }
 end
 
@@ -74,9 +80,9 @@ function ExportDialogSettings.validateExifToolPath(path)
     return true, "Valid ExifTool path"
 end
 
--- Initialize property table values with default values (НЕ загружать из глобальных настроек)
+-- Initialize property table values with default values
 function ExportDialogSettings.initializePropertyTable(propertyTable)
-    -- Устанавливаем значения по умолчанию только если они еще не установлены
+    -- Set default values only if they are not already set
     if propertyTable.enableTemplateProcessing == nil then
         propertyTable.enableTemplateProcessing = false
     end
@@ -89,9 +95,26 @@ function ExportDialogSettings.initializePropertyTable(propertyTable)
     if propertyTable.enableAsciiConversion == nil then
         propertyTable.enableAsciiConversion = true
     end
+    if propertyTable.enableCrsDataRemoval == nil then
+        propertyTable.enableCrsDataRemoval = false
+    end
+    if propertyTable.enableSoftwareInfoRemoval == nil then
+        propertyTable.enableSoftwareInfoRemoval = false
+    end
+    if propertyTable.enableLocationInfoRemoval == nil then
+        propertyTable.enableLocationInfoRemoval = false
+    end
+    if propertyTable.enableEquipmentInfoRemoval == nil then
+        propertyTable.enableEquipmentInfoRemoval = false
+    end
+    if propertyTable.enableShootingInfoRemoval == nil then
+        propertyTable.enableShootingInfoRemoval = false
+    end
+    -- Новая настройка для удаления IPTC тегов
+    if propertyTable.enableIptcInfoRemoval == nil then
+        propertyTable.enableIptcInfoRemoval = false
+    end
 end
-
--- УДАЛЕНЫ функции setupObservers - настройки должны сохраняться в propertyTable автоматически
 
 -- Create the UI section for the export dialog
 function ExportDialogSettings.createUISection(f)
@@ -164,6 +187,64 @@ function ExportDialogSettings.createUISection(f)
                 title = "Enable ASCII conversion of diacritic characters",
                 value = LrView.bind { key = 'enableAsciiConversion' },
                 tooltip = "Convert characters with diacritics (ą, ę, ł, etc.) to ASCII equivalents (a, e, l, etc.)",
+            },
+        },
+        
+        f:spacer { height = 10 },
+        
+        f:row {
+            f:static_text {
+                title = "Remove metadata:",
+                font = '<system/bold>',
+            },
+        },
+        
+        f:row {
+            f:checkbox {
+                title = "Remove Camera Raw Settings data",
+                value = LrView.bind { key = 'enableCrsDataRemoval' },
+                tooltip = "Remove all CRS (Camera Raw Settings) data from image metadata",
+            },
+        },
+        
+        f:row {
+            f:checkbox {
+                title = "Remove software information",
+                value = LrView.bind { key = 'enableSoftwareInfoRemoval' },
+                tooltip = "Remove software and processing application information (Software, CreatorTool, etc.)",
+            },
+        },
+        
+        f:row {
+            f:checkbox {
+                title = "Remove location information",
+                value = LrView.bind { key = 'enableLocationInfoRemoval' },
+                tooltip = "Remove GPS coordinates and location names (City, Country, GPS data, etc.)",
+            },
+        },
+        
+        f:row {
+            f:checkbox {
+                title = "Remove equipment information",
+                value = LrView.bind { key = 'enableEquipmentInfoRemoval' },
+                tooltip = "Remove camera and lens information (Make, Model, LensModel, SerialNumber, etc.)",
+            },
+        },
+        
+        f:row {
+            f:checkbox {
+                title = "Remove shooting parameters",
+                value = LrView.bind { key = 'enableShootingInfoRemoval' },
+                tooltip = "Remove exposure settings (shutter speed, aperture, ISO, focal length, etc.)",
+            },
+        },
+        
+        -- Новый checkbox для удаления IPTC тегов
+        f:row {
+            f:checkbox {
+                title = "Remove IPTC tags (preserves DC tags)",
+                value = LrView.bind { key = 'enableIptcInfoRemoval' },
+                tooltip = "Remove IPTC metadata tags",
             },
         },
     }
