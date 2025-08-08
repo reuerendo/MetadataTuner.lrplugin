@@ -33,8 +33,6 @@ The plugin allows you to add information from other tags to the **title** and **
 {Title} - Photo title
 
 {Caption} - Photo caption
-
-{Keywords} - Keywords list
 ## How to use:
 1. During export, find 'Metadata Tuner' in the 'Post-Process Actions' section
 2. Enable the filter
