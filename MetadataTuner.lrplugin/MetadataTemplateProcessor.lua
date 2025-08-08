@@ -102,7 +102,7 @@ end
 
 -- Function to get basic metadata
 local function getBasicMetadata(photo)
-    local title = photo:getFormattedMetadata('headline') or ''
+    local title = photo:getFormattedMetadata('title') or ''
     local caption = photo:getFormattedMetadata('caption') or ''
     
     -- Keywords functionality removed
