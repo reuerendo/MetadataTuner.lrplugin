@@ -106,7 +106,6 @@ function ExportFilterProvider.postProcessRenderedPhotos(functionContext, filterC
     local enableAsciiConversion = exportSettings.enableAsciiConversion
     local enableCrsDataRemoval = exportSettings.enableCrsDataRemoval
     local enableSoftwareInfoRemoval = exportSettings.enableSoftwareInfoRemoval
-    local enableLocationInfoRemoval = exportSettings.enableLocationInfoRemoval
     local enableEquipmentInfoRemoval = exportSettings.enableEquipmentInfoRemoval
     local enableShootingInfoRemoval = exportSettings.enableShootingInfoRemoval
     local enableIptcInfoRemoval = exportSettings.enableIptcInfoRemoval
@@ -150,13 +149,12 @@ function ExportFilterProvider.postProcessRenderedPhotos(functionContext, filterC
                 end
                 
                 -- Remove metadata if any removal options are enabled
-                if enableCrsDataRemoval or enableSoftwareInfoRemoval or enableLocationInfoRemoval or enableEquipmentInfoRemoval or enableShootingInfoRemoval or enableIptcInfoRemoval then
+                if enableCrsDataRemoval or enableSoftwareInfoRemoval or enableEquipmentInfoRemoval or enableShootingInfoRemoval or enableIptcInfoRemoval then
                     local exifToolPath = ExportDialogSettings.getExifToolPath()
                     if exifToolPath then
                         local removalOptions = {
                             removeCrsData = enableCrsDataRemoval,
                             removeSoftwareInfo = enableSoftwareInfoRemoval,
-                            removeLocationInfo = enableLocationInfoRemoval,
                             removeEquipmentInfo = enableEquipmentInfoRemoval,
                             removeShootingInfo = enableShootingInfoRemoval,
                             removeIptcInfo = enableIptcInfoRemoval

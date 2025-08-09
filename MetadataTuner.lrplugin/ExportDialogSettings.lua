@@ -54,7 +54,6 @@ function ExportDialogSettings.getExportSettings(propertyTable)
         enableAsciiConversion = propertyTable.enableAsciiConversion,
         enableCrsDataRemoval = propertyTable.enableCrsDataRemoval or false,
         enableSoftwareInfoRemoval = propertyTable.enableSoftwareInfoRemoval or false,
-        enableLocationInfoRemoval = propertyTable.enableLocationInfoRemoval or false,
         enableEquipmentInfoRemoval = propertyTable.enableEquipmentInfoRemoval or false,
         enableShootingInfoRemoval = propertyTable.enableShootingInfoRemoval or false,
         enableIptcInfoRemoval = propertyTable.enableIptcInfoRemoval or false
@@ -101,16 +100,12 @@ function ExportDialogSettings.initializePropertyTable(propertyTable)
     if propertyTable.enableSoftwareInfoRemoval == nil then
         propertyTable.enableSoftwareInfoRemoval = false
     end
-    if propertyTable.enableLocationInfoRemoval == nil then
-        propertyTable.enableLocationInfoRemoval = false
-    end
     if propertyTable.enableEquipmentInfoRemoval == nil then
         propertyTable.enableEquipmentInfoRemoval = false
     end
     if propertyTable.enableShootingInfoRemoval == nil then
         propertyTable.enableShootingInfoRemoval = false
     end
-    -- Новая настройка для удаления IPTC тегов
     if propertyTable.enableIptcInfoRemoval == nil then
         propertyTable.enableIptcInfoRemoval = false
     end
@@ -217,14 +212,6 @@ function ExportDialogSettings.createUISection(f)
         
         f:row {
             f:checkbox {
-                title = "Remove location information",
-                value = LrView.bind { key = 'enableLocationInfoRemoval' },
-                tooltip = "Remove GPS coordinates and location names (City, Country, GPS data, etc.)",
-            },
-        },
-        
-        f:row {
-            f:checkbox {
                 title = "Remove equipment information",
                 value = LrView.bind { key = 'enableEquipmentInfoRemoval' },
                 tooltip = "Remove camera and lens information (Make, Model, LensModel, SerialNumber, etc.)",
@@ -239,7 +226,6 @@ function ExportDialogSettings.createUISection(f)
             },
         },
         
-        -- Новый checkbox для удаления IPTC тегов
         f:row {
             f:checkbox {
                 title = "Remove IPTC tags (preserves DC tags)",

@@ -9,7 +9,7 @@ local function escapeArgument(arg)
     return '"' .. string.gsub(arg, '"', '""') .. '"'
 end
 
--- Predefined command sets for each removal type
+-- Predefined command sets for each removal type (location removal section removed)
 local REMOVAL_COMMANDS = {
     crs = {
         "-XMP-crs:all="
@@ -27,18 +27,6 @@ local REMOVAL_COMMANDS = {
         "-XMP-xmp:MetadataDate=",
         "-XMP-xmp:ModifyDate=",
         "-XMP-xmpMM:all="
-    },
-    
-    location = {
-        "-GPS:all=",
-        "-XMP-exif:GPS*=",
-        "-City=", "-State=", "-Country=", "-Location=",
-        "-XMP-iptc:City=", "-XMP-iptc:State=", "-XMP-iptc:Country=", "-XMP-iptc:Location=",
-        "-IPTC:City=", "-IPTC:Province-State=", "-IPTC:Country-PrimaryLocationName=",
-        "-IPTC:CountryCode=", "-IPTC:Country-PrimaryLocationCode=", "-IPTC:Sub-location=",
-        "-XMP-iptc:CountryCode=", "-XMP-photoshop:Country=",
-        "-XMP-photoshop:City=", "-XMP-photoshop:State=",
-        "-XMP-iptcCore:CountryCode="
     },
     
     shooting = {
@@ -180,7 +168,7 @@ local REMOVAL_COMMANDS = {
     }
 }
 
--- Function for building removal commands (remains unchanged)
+-- Function for building removal commands (location removal removed)
 local function buildRemovalCommands(options)
     local commands = {}
     
@@ -192,12 +180,6 @@ local function buildRemovalCommands(options)
     
     if options.removeSoftwareInfo then
         for _, cmd in ipairs(REMOVAL_COMMANDS.software) do
-            table.insert(commands, cmd)
-        end
-    end
-    
-    if options.removeLocationInfo then
-        for _, cmd in ipairs(REMOVAL_COMMANDS.location) do
             table.insert(commands, cmd)
         end
     end
@@ -223,7 +205,7 @@ local function buildRemovalCommands(options)
     return commands
 end
 
--- New function for executing ExifTool command directly
+-- Function for executing ExifTool command directly
 local function executeExifTool(exifToolPath, filePath, commands)
     local commandArgs = {}
     for _, cmd in ipairs(commands) do
@@ -252,7 +234,7 @@ local function executeExifTool(exifToolPath, filePath, commands)
     return success, message
 end
 
--- Main function for removing metadata
+-- Main function for removing metadata (location removal parameter removed)
 function MetadataRemover.removeMetadata(filePath, exifToolPath, options)
     -- Quick checks
     if not exifToolPath or not LrFileUtils.exists(exifToolPath) then
