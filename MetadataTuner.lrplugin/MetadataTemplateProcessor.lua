@@ -17,36 +17,80 @@ local function getDateComponents(photo)
     local formattedDate = photo:getFormattedMetadata('dateTimeOriginal') or photo:getFormattedMetadata('dateTime')
     
     if formattedDate then
-        -- Parse year from formatted date string
-        local year = formattedDate:match("(%d%d%d%d)")
-        local month = formattedDate:match("/(%d%d)/") or formattedDate:match("-(%d%d)-") or formattedDate:match("%.(%d%d)%.") or "01"
-        local day = formattedDate:match("/(%d%d)%s") or formattedDate:match("-(%d%d)%s") or formattedDate:match("%.(%d%d)%s") or "01"
+        -- Parse date components from formatted date string
+        -- Handle various date formats: MM/DD/YYYY, YYYY-MM-DD, DD.MM.YYYY, etc.
+        local year, month, day
         
-        if year then
+        -- Try different date formats
+        year, month, day = formattedDate:match("(%d%d%d%d)-(%d%d)-(%d%d)")  -- YYYY-MM-DD
+        if not year then
+            month, day, year = formattedDate:match("(%d%d)/(%d%d)/(%d%d%d%d)")  -- MM/DD/YYYY
+        end
+        if not year then
+            day, month, year = formattedDate:match("(%d%d)%.(%d%d)%.(%d%d%d%d)")  -- DD.MM.YYYY
+        end
+        if not year then
+            day, month, year = formattedDate:match("(%d%d)/(%d%d)/(%d%d%d%d)")  -- DD/MM/YYYY
+        end
+        if not year then
+            -- Try to extract year, month, day separately if combined patterns fail
+            year = formattedDate:match("(%d%d%d%d)")
+            if year then
+                -- Look for month and day patterns near the year
+                local dateOnly = formattedDate:match("([%d/%-%.]+)")
+                if dateOnly then
+                    local parts = {}
+                    for part in dateOnly:gmatch("(%d+)") do
+                        table.insert(parts, part)
+                    end
+                    
+                    if #parts >= 3 then
+                        -- Determine format based on year position
+                        if parts[1] == year then
+                            -- YYYY-MM-DD format
+                            month, day = parts[2], parts[3]
+                        elseif parts[3] == year then
+                            if tonumber(parts[1]) > 12 then
+                                -- DD-MM-YYYY format
+                                day, month = parts[1], parts[2]
+                            else
+                                -- MM-DD-YYYY format  
+                                month, day = parts[1], parts[2]
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        if year and month and day then
             local monthNum = tonumber(month) or 1
             local dayNum = tonumber(day) or 1
             
-            local monthNamesFull = {
-                "January", "February", "March", "April", "May", "June",
-                "July", "August", "September", "October", "November", "December"
-            }
+            -- Validate parsed values
+            if monthNum >= 1 and monthNum <= 12 and dayNum >= 1 and dayNum <= 31 then
+                local monthNamesFull = {
+                    "January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"
+                }
 
-            local monthNamesShort = {
-                "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-            }
-            
-            return {
-                YYYY = year,
-                YY = year:sub(-2),
-                MM = string.format("%02d", monthNum),
-                MMM = monthNamesShort[monthNum] or "Jan",
-                MMMM = monthNamesFull[monthNum] or "January",
-                DD = string.format("%02d", dayNum),
-                D = tostring(dayNum),
-                DDD = "Mon", -- Default values for day names
-                DDDD = "Monday",
-            }
+                local monthNamesShort = {
+                    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+                }
+                
+                return {
+                    YYYY = year,
+                    YY = year:sub(-2),
+                    MM = string.format("%02d", monthNum),
+                    MMM = monthNamesShort[monthNum] or "Jan",
+                    MMMM = monthNamesFull[monthNum] or "January",
+                    DD = string.format("%02d", dayNum),
+                    D = tostring(dayNum),
+                    DDD = "Mon", -- Default values for day names
+                    DDDD = "Monday",
+                }
+            end
         end
     end
 
